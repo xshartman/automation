@@ -1,0 +1,62 @@
+---
+- name: Playbook to Install Packages for CRDB
+
+  hosts:
+    - dev
+
+  tasks:
+  - name: Install htop
+    package:
+     name:
+       - htop
+
+     state: present
+
+  - name: Create repo dir
+    ansible.builtin.file:
+      path: /home/sysop/repo
+      state: directory
+      remote_src: yes
+
+  - name: Create certs dir
+    ansible.builtin.file:
+      path: /home/sysop/certs
+      state: directory
+      remote_src: yes
+
+  - name: Create my-safe-dir dir
+    ansible.builtin.file:
+      path: /home/sysop/my-safe-directory
+      state: directory
+      remote_src: yes
+
+  - name: Extract archive
+    ansible.builtin.unarchive:
+      src: https://binaries.cockroachdb.com/cockroach-v21.2.7.linux-amd64.tgz
+      dest: /home/sysop/repo/
+      remote_src: yes
+
+  - name: Copy binary to /usr/local/bin
+    ansible.builtin.copy:
+      src: /home/sysop/repo/cockroach-v21.2.7.linux-amd64/cockroach
+      dest: /usr/local/bin
+      remote_src: yes
+
+  - name: Change Permission of file
+    file:
+       path: /usr/local/bin/cockroach
+       state: file
+       owner: sysop
+       group: sysop
+       mode: 0755
+
+  - name: Create the directory where the external libraries location
+    ansible.builtin.file:
+      path: /usr/local/lib/cockroach
+      state: directory
+
+  - name: Copy the external libraries to the directory
+    ansible.builtin.copy:
+      remote_src: yes
+      src: /home/sysop/repo/cockroach-v21.2.7.linux-amd64/lib/
+      dest: /usr/local/lib/cockroach/
